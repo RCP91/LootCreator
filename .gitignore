@@ -1,0 +1,4 @@
+obj
+LootCreator\bin\Release\net6.0-windows\LootCreator\*
+.vs*
+LootCreator/bin/Release/net6.0-windows/nameid.list
