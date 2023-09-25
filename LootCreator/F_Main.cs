@@ -9,6 +9,7 @@ namespace LootCreator
     {
         public string endl = Environment.NewLine;
         string Arquivo = "nameid.list";
+
         List<KeyValuePair<string, int>> listID = new List<KeyValuePair<string, int>>();
         public F_Main()
         {
@@ -47,13 +48,20 @@ namespace LootCreator
             foreach (Item item in listaDeItens)
             {
                 int chance;
-                if (item.CountMax < 2 && !item.ItemName.Contains("(sempre)"))
+                string u = "";
+
+                if (item.CountMax < 2 && !item.ItemName.Contains("(sempre)") && !item.ItemName.Contains("(a)"))
                 {
                     chance = Convert.ToInt32(getChance(item.ItemName)) / 4;
                 }
                 else
                 {
                     chance = Convert.ToInt32(getChance(item.ItemName));
+                }
+
+                if (item.ItemName.Contains("(u)"))
+                {
+                    u = ", unique = true";
                 }
                 item.ItemName = setFilter(item.ItemName);
 
@@ -70,11 +78,11 @@ namespace LootCreator
 
                 if (matchingID != -1)
                 {
-                    tb_out.Text += $"\t{{ id = {matchingID}, chance = {chance}, maxCount = {item.CountMax} }}, -- {item.ItemName}" + Environment.NewLine;
+                    tb_out.Text += $"\t{{ id = {matchingID}, chance = {chance}, maxCount = {item.CountMax}{u} }}, -- {item.ItemName}" + Environment.NewLine;
                 }
                 else
                 {
-                    tb_out.Text += $"\t{{ name = \"{item.ItemName}\", chance = {chance}, maxCount = {item.CountMax} }}," + Environment.NewLine;
+                    tb_out.Text += $"\t{{ name = \"{item.ItemName}\", chance = {chance}, maxCount = {item.CountMax}{u} }}," + Environment.NewLine;
                 }
 
             }
@@ -82,16 +90,9 @@ namespace LootCreator
             tb_out.Visible = true;
             tb_in.Visible = false;
         }
-
-        private void btn_back_Click(object sender, EventArgs e)
-        {
-            tb_in.Visible = true;
-            tb_out.Visible = false;
-            tb_out.Clear();
-        }
         private string getChance(string item)
         {
-            if (item.Contains("(sempre)"))
+            if (item.Contains("(sempre)") || item.Contains("(a)"))
             {
                 return "100000";
             }
@@ -105,7 +106,7 @@ namespace LootCreator
         }
         private string setFilter(string item)
         {
-            item = item.ToLower().Replace("(sempre)", "").Trim();
+            item = item.ToLower().Replace("(sempre)", "").Replace("(a)", "").Trim();
 
             if (item.EndsWith("ies"))
             {
@@ -118,6 +119,10 @@ namespace LootCreator
             if (item.EndsWith("s") && !item.Contains("legs") && !item.Contains("boots") && !item.Contains("remains"))
             {
                 item = item.TrimEnd('s');
+            }
+            if (item.EndsWith("(u)"))
+            {
+                item = item.Replace("(u)", "").TrimEnd();
             }
             return item;
         }
@@ -158,21 +163,44 @@ namespace LootCreator
                 MessageBox.Show($"Error to load archive: {e.Message}", "ERROR LOAD", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
+        private void btn_back_Click(object sender, EventArgs e)
+        {
+            tb_in.Visible = true;
+            tb_out.Visible = false;
+            tb_out.Clear();
+        }
+        private void btn_fandom_Click(object sender, EventArgs e)
+        {
+            F_Fandom f_Fandom = new(this);
+            f_Fandom.ShowDialog();
+        }
         private void btn_close_Click(object sender, EventArgs e)
         {
             pn_list.Visible = false;
+            pn_main.Enabled = true;
+            cb_list.ResetText();
         }
-
         private void cb_list_Click(object sender, EventArgs e)
         {
             pn_list.Visible = true;
-        }
+            pn_main.Enabled = false;
 
+            string txtopc = cb_list.Text;
+            int idx = txtopc.IndexOf('=');
+            if (cb_list.Text != string.Empty)
+            {
+                if (idx >= 0)
+                {
+                    tb_id.Text = txtopc.Substring(idx + 2);
+                    tb_name.Text = txtopc.Substring(0, idx - 1);
+                }
+            }
+        }
         private void btn_add_Click(object sender, EventArgs e)
         {
             string name = tb_name.Text;
             string id = tb_id.Text;
+
             try
             {
                 using (StreamWriter sw = new StreamWriter(Arquivo, true))
@@ -182,15 +210,10 @@ namespace LootCreator
             }
             catch { }
             cb_list.Text = $"{name} = {id}";
+            tb_name.Clear();
+            tb_id.Clear();
             LoadList();
         }
-
-        private void btn_fandom_Click(object sender, EventArgs e)
-        {
-            F_Fandom f_Fandom = new(this);
-            f_Fandom.ShowDialog();
-        }
-
         private void btn_remove_Click(object sender, EventArgs e)
         {
             string name = tb_name.Text;
@@ -231,8 +254,7 @@ namespace LootCreator
                 }
             }
             catch { }
-
-            cb_list.Text = $"{name} = {id}";
+            cb_list.ResetText();
             LoadList();
         }
     }
