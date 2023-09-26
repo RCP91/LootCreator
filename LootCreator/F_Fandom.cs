@@ -18,7 +18,9 @@ namespace LootCreator
         }
         private async Task btn_convert_ClickAsync(object sender, EventArgs e)
         {
-            await HttpOps($"https://tibia.fandom.com/wiki/Loot_Statistics:{tb_monster.Text}");
+            string f = tb_monster.Text.Replace(" ", "_");
+            
+            await HttpOps($"https://tibia.fandom.com/wiki/Loot_Statistics:{f}");
             string padrao = @"<td class=""loot_list_no_border"">(\d+(?:-\d+)?|(?:-)?|\d+)</td>\s*<td><a[^>]*>([^<]*)</a></td>";
 
             MatchCollection matches = Regex.Matches(Recep, padrao);
@@ -48,12 +50,13 @@ namespace LootCreator
             if (!string.IsNullOrEmpty(infoFormat))
             {
                 infoFormat = infoFormat.TrimEnd(',', ' ');
-                //MessageBox.Show(infoFormat);
                 f_main.tb_in.Text = infoFormat;
+                f_main.lb_target.Visible = true;
+                f_main.lb_target.Text = $"Loot from: {f.Replace("_", " ")}";
             }
             else
             {
-                MessageBox.Show("Search not found!", "search loot", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("Information empty", "Information Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             Close();
@@ -71,12 +74,12 @@ namespace LootCreator
                     }
                     else
                     {
-                        MessageBox.Show("Success https: " + response.StatusCode);
+                        MessageBox.Show("Search not found!", "Search Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error https: " + ex.Message);
+                    MessageBox.Show("Error connect link: " + ex.Message, "Network Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

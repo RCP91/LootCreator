@@ -1,3 +1,4 @@
+using System.DirectoryServices.ActiveDirectory;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -52,7 +53,9 @@ namespace LootCreator
 
                 if (item.CountMax < 2 && !item.ItemName.Contains("(sempre)") && !item.ItemName.Contains("(a)"))
                 {
-                    chance = Convert.ToInt32(getChance(item.ItemName)) / 4;
+                    int pa = Convert.ToInt32(getChance(item.ItemName));
+                    int pb = Convert.ToInt32(nud_unique.Value);
+                    chance = (pa * pb / 100);
                 }
                 else
                 {
@@ -90,6 +93,10 @@ namespace LootCreator
             tb_out.Visible = true;
             tb_in.Visible = false;
         }
+        public int GetNumeric(decimal n)
+        {
+            return Convert.ToInt32(n);
+        }
         private string getChance(string item)
         {
             if (item.Contains("(sempre)") || item.Contains("(a)"))
@@ -98,9 +105,10 @@ namespace LootCreator
             }
             else
             {
-                int tbchance = Convert.ToInt32(tb_chance.Text);
+                int intP = GetNumeric(nud_percent.Value);
+                int intC = GetNumeric(nud_chance.Value);
                 Random random = new Random();
-                int variation = random.Next(tbchance - (tbchance / 2), tbchance + (tbchance / 2) + 1);
+                int variation = random.Next(intC - (intC * intP / 100), intC + (intC * intP / 100) + 1);
                 return variation.ToString();
             }
         }
@@ -171,6 +179,8 @@ namespace LootCreator
         }
         private void btn_fandom_Click(object sender, EventArgs e)
         {
+            btn_back_Click(sender, e);
+            lb_target.Visible = false;
             F_Fandom f_Fandom = new(this);
             f_Fandom.ShowDialog();
         }
